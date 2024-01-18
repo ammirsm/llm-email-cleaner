@@ -33,7 +33,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,6 +42,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "main",
+    "retriever",
 ]
 
 MIDDLEWARE = [
@@ -131,3 +132,7 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# merge base dir with env var
+GMAIL_CREDS_PATH = os.path.join(BASE_DIR, os.environ.get("GMAIL_CREDS_PATH", "config/credentials.json"))
+GMAIL_TOKEN_PATH = os.path.join(BASE_DIR, os.environ.get("GMAIL_TOKEN_PATH", "config/token.json"))

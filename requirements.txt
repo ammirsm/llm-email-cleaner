@@ -18,3 +18,8 @@ virtualenv==20.25.0
 django==4.2.9
 psycopg2-binary>=2.8
 django-environ==0.11.2
+google-api-python-client==2.114.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+beautifulsoup4==4.12.3
+llama_index==0.9.33
