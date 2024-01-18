@@ -1,16 +1,17 @@
 __all__ = ["GmailReader"]
+
 # inspired by https://github.com/run-llama/llama-hub/tree/956aa44b6dfa3e085b9b9a80c3caec0144b1bbbf/llama_hub/gmail
 
 import base64
 import email
 import os
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from core.settings import GMAIL_CREDS_PATH, GMAIL_TOKEN_PATH, SCOPES
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource, build
 from llama_index import Document
 from llama_index.readers.base import BaseReader
 
@@ -23,6 +24,14 @@ class GmailReader(BaseReader):
         use_iterative_parser: Optional[bool] = False,
         max_results: Optional[int] = 10,
     ):
+        """
+        Initialize the GmailReader with optional query parameters.
+
+        :param query: The query string to filter emails.
+        :param results_per_page: Number of results to return per page.
+        :param use_iterative_parser: Flag to use the iterative parser for email bodies.
+        :param max_results: Maximum number of results to fetch.
+        """
         self.query = query
         self.results_per_page = results_per_page
         self.use_iterative_parser = use_iterative_parser
@@ -30,19 +39,31 @@ class GmailReader(BaseReader):
         self.service = None
 
     def load_data(self) -> List[Document]:
-        """Load emails from the user's account."""
+        """
+        Load emails from the user's Gmail account based on the specified query.
+
+        :return: A list of Document objects representing the emails.
+        """
         self.service = self.service or self._build_service()
         messages = self._search_messages()
         return messages
 
-    def _build_service(self):
-        """Build the Gmail API service."""
+    def _build_service(self) -> Resource:
+        """
+        Build and return the Gmail API service resource.
+
+        :return: The Gmail API service resource.
+        """
         credentials = self._get_credentials()
         return build("gmail", "v1", credentials=credentials)
 
     @staticmethod
-    def _get_credentials():
-        """Get valid user credentials from storage."""
+    def _get_credentials() -> Credentials:
+        """
+        Retrieve user credentials from storage or initiate the authorization flow.
+
+        :return: The obtained user credentials.
+        """
         creds = None
         if os.path.exists(GMAIL_TOKEN_PATH):
             creds = Credentials.from_authorized_user_file(GMAIL_TOKEN_PATH, SCOPES)
@@ -58,8 +79,12 @@ class GmailReader(BaseReader):
 
         return creds
 
-    def _search_messages(self):
-        """Search messages based on the query."""
+    def _search_messages(self) -> List[Dict[str, Any]]:
+        """
+        Search for messages in the user's Gmail account based on the set query.
+
+        :return: A list of message data dictionaries.
+        """
         results = (
             self.service.users()
             .messages()
@@ -72,8 +97,13 @@ class GmailReader(BaseReader):
 
         return self._process_messages(messages)
 
-    def _paginate_messages(self, messages, results):
-        """Handle message pagination."""
+    def _paginate_messages(self, messages: List[Dict[str, Any]], results: Dict[str, Any]) -> None:
+        """
+        Paginate through message search results and append them to the messages list.
+
+        :param messages: The current list of messages.
+        :param results: The current page of search results.
+        """
         while "nextPageToken" in results and len(messages) < self.max_results:
             page_token = results["nextPageToken"]
             results = (
@@ -84,8 +114,13 @@ class GmailReader(BaseReader):
             )
             messages.extend(results.get("messages", []))
 
-    def _process_messages(self, messages):
-        """Process and parse messages."""
+    def _process_messages(self, messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Process and parse each message in the list of messages.
+
+        :param messages: The list of messages to process.
+        :return: A list of dictionaries with detailed message information.
+        """
         result = []
         for message in messages:
             try:
@@ -97,8 +132,13 @@ class GmailReader(BaseReader):
 
         return result
 
-    def _get_message_data(self, message):
-        """Get data from a single message."""
+    def _get_message_data(self, message: Dict[str, str]) -> Optional[Dict[str, Any]]:
+        """
+        Retrieve and parse data for a single message.
+
+        :param message: A dictionary representing a Gmail message.
+        :return: A dictionary with the message's details, or None if unable to parse.
+        """
         message_id = message["id"]
         message_data = self.service.users().messages().get(userId="me", id=message_id, format="raw").execute()
 
@@ -123,7 +163,16 @@ class GmailReader(BaseReader):
             "copy": copy,
         }
 
-    def _extract_message_body_iterative(self, message: dict, is_top_level=True):
+    def _extract_message_body_iterative(
+        self, message: Dict[str, Any], is_top_level: bool = True
+    ) -> Union[Dict[str, Any], str]:
+        """
+        Iteratively extract the body and other details from a message.
+
+        :param message: The message to parse.
+        :param is_top_level: Whether this is the top level of the message (controls parsing logic).
+        :return: A dictionary with the email's details, or the body text if not top level.
+        """
         if is_top_level and "raw" in message:
             body = base64.urlsafe_b64decode(message["raw"].encode("utf-8"))
             mime_msg = email.message_from_bytes(body)
@@ -155,7 +204,15 @@ class GmailReader(BaseReader):
             return body_text
 
     @staticmethod
-    def _extract_message_body(message: dict):
+    def _extract_message_body(
+        message: Dict[str, str]
+    ) -> Tuple[str, Optional[str], Optional[str], Optional[str], Optional[str]]:
+        """
+        Extract the body and other details from a message.
+
+        :param message: The message to parse.
+        :return: A tuple containing the body, subject, sender, recipient, and copy of the message.
+        """
         from bs4 import BeautifulSoup
 
         try:
