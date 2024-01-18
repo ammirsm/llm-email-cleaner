@@ -3,8 +3,8 @@
 from django.test import TestCase
 
 
-class Test(TestCase):
-    def test_gmail(self):
+class GmailReaderTest(TestCase):
+    def test_gmail_reader(self):
         from retriever.services import GmailReader
 
         gmail_reader = GmailReader()
