@@ -1,4 +1,4 @@
-__all__ = ["GmailReader"]
+__all__ = ["GmailLoader"]
 
 # inspired by https://github.com/run-llama/llama-hub/tree/956aa44b6dfa3e085b9b9a80c3caec0144b1bbbf/llama_hub/gmail
 
@@ -12,11 +12,10 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import Resource, build
-from llama_index import Document
 from llama_index.readers.base import BaseReader
 
 
-class GmailReader(BaseReader):
+class GmailLoader(BaseReader):
     def __init__(
         self,
         query: Optional[str] = None,
@@ -40,9 +39,9 @@ class GmailReader(BaseReader):
         self.max_results = max_results
         self.service = None
         self.creds_json = creds
-        self.token_json = token
+        self.token = token
 
-    def load_data(self) -> List[Document]:
+    def load_data(self) -> list[dict[str, Any]]:
         """
         Load emails from the user's Gmail account based on the specified query.
 
@@ -65,16 +64,15 @@ class GmailReader(BaseReader):
         credentials, _ = self._get_credentials()
         return build("gmail", "v1", credentials=credentials)
 
-    def _get_credentials(self) -> Credentials:
+    def _get_credentials(self) -> tuple[Credentials | None | Any, dict[str, Any] | Any]:
         """
         Retrieve user credentials from storage or initiate the authorization flow.
 
         :return: The obtained user credentials.
         """
         creds = None
-        if self.token_json:
-            creds = Credentials.from_authorized_user_info(self.token_json, SCOPES)
-            self.token = self.token_json
+        if self.token:
+            creds = Credentials.from_authorized_user_info(self.token, SCOPES)
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
@@ -237,6 +235,6 @@ class GmailReader(BaseReader):
             recipient = mime_msg["To"]
             copy = mime_msg["Cc"]
 
-            return body.decode("utf-8"), subject, sender, recipient, copy
+            return body.decode("utf-8", errors="replace"), subject, sender, recipient, copy
         except Exception as e:
             raise Exception("Can't parse message body" + str(e))

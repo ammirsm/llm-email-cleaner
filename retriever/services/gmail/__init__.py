@@ -1,2 +1,2 @@
-__all__ = ["GmailReader"]
-from .gmail_loader import GmailReader
+__all__ = ["GmailLoader"]
+from .gmail_loader import GmailLoader
