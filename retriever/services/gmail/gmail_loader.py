@@ -4,10 +4,10 @@ __all__ = ["GmailReader"]
 
 import base64
 import email
-import os
+import json
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from core.settings import GMAIL_CREDS_PATH, GMAIL_TOKEN_PATH, SCOPES
+from core.settings import SCOPES
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -23,6 +23,8 @@ class GmailReader(BaseReader):
         results_per_page: Optional[int] = 10,
         use_iterative_parser: Optional[bool] = False,
         max_results: Optional[int] = 10,
+        creds: Optional[Dict[str, Any]] = None,
+        token: Optional[Dict[str, Any]] = None,
     ):
         """
         Initialize the GmailReader with optional query parameters.
@@ -37,6 +39,8 @@ class GmailReader(BaseReader):
         self.use_iterative_parser = use_iterative_parser
         self.max_results = max_results
         self.service = None
+        self.creds_json = creds
+        self.token_json = token
 
     def load_data(self) -> List[Document]:
         """
@@ -48,36 +52,40 @@ class GmailReader(BaseReader):
         messages = self._search_messages()
         return messages
 
+    def get_token(self):
+        credentials, token = self._get_credentials()
+        return token
+
     def _build_service(self) -> Resource:
         """
         Build and return the Gmail API service resource.
 
         :return: The Gmail API service resource.
         """
-        credentials = self._get_credentials()
+        credentials, _ = self._get_credentials()
         return build("gmail", "v1", credentials=credentials)
 
-    @staticmethod
-    def _get_credentials() -> Credentials:
+    def _get_credentials(self) -> Credentials:
         """
         Retrieve user credentials from storage or initiate the authorization flow.
 
         :return: The obtained user credentials.
         """
         creds = None
-        if os.path.exists(GMAIL_TOKEN_PATH):
-            creds = Credentials.from_authorized_user_file(GMAIL_TOKEN_PATH, SCOPES)
+        if self.token_json:
+            creds = Credentials.from_authorized_user_info(self.token_json, SCOPES)
+            self.token = self.token_json
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(GMAIL_CREDS_PATH, SCOPES)
+                flow = InstalledAppFlow.from_client_config(self.creds_json, SCOPES)
                 creds = flow.run_local_server(port=8080)
-            with open(GMAIL_TOKEN_PATH, "w") as token:
-                token.write(creds.to_json())
 
-        return creds
+            self.token = json.loads(creds.to_json())
+
+        return creds, self.token
 
     def _search_messages(self) -> List[Dict[str, Any]]:
         """

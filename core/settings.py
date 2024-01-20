@@ -135,5 +135,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # merge base dir with env var
 GMAIL_CREDS_PATH = os.path.join(BASE_DIR, os.environ.get("GMAIL_CREDS_PATH", "config/credentials.json"))
-GMAIL_TOKEN_PATH = os.path.join(BASE_DIR, os.environ.get("GMAIL_TOKEN_PATH", "config/token.json"))
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
