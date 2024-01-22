@@ -1,7 +1,8 @@
-from core.settings import GMAIL_CREDS_PATH
+from core.settings import GMAIL_CREDS_PATH, GMAIL_TOKEN_PATH
 from django.test import TestCase
 
 from retriever.constants import GMAIL
+from retriever.models import EmailMessage
 
 
 class GmailReaderTest(TestCase):
@@ -12,17 +13,19 @@ class GmailReaderTest(TestCase):
         with open(GMAIL_CREDS_PATH) as f:
             creds = json.load(f)
 
+        with open(GMAIL_TOKEN_PATH) as f:
+            token = json.load(f)
+
         # WHEN create new EmailAccount object
         from retriever.models import EmailAccount
 
         email_account = EmailAccount.objects.create(
-            email="amir@amir.com", creds=creds, token=None, service_type=GMAIL
+            email="amir@amir.com", creds=creds, token=token, service_type=GMAIL
         )
         self.assertIsNotNone(email_account)
 
-        # THEN we should be able to load emails.
-        loader = email_account.get_loader_class(max_results=500)
+        # WHEN load email messages
+        email_account.load_ids_to_email_messages()
 
-        # load data from GmailReader
-        data = loader.load_data()
-        self.assertIsNotNone(data)
+        # THEN we should be able to load emails.
+        self.assertIsNotNone(EmailMessage.objects.filter(email_account=email_account))

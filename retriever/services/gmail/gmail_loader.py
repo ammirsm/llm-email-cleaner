@@ -51,6 +51,14 @@ class GmailLoader(BaseReader):
         messages = self._search_messages()
         return messages
 
+    def load_message_ids(self) -> list[dict[str, Any]]:
+        """
+        Load emails from the user's Gmail account based on the specified query.
+        :return:
+        """
+        self.service = self.service or self._build_service()
+        return self._search_messages_id()
+
     def get_token(self):
         credentials, token = self._get_credentials()
         return token
@@ -84,6 +92,24 @@ class GmailLoader(BaseReader):
             self.token = json.loads(creds.to_json())
 
         return creds, self.token
+
+    def _search_messages_id(self) -> List[Dict[str, Any]]:
+        """
+        Search for messages in the user's Gmail account based on the set query.
+
+        :return: A list of message data dictionaries.
+        """
+        results = (
+            self.service.users()
+            .messages()
+            .list(userId="me", q=self.query, maxResults=int(self.results_per_page))
+            .execute()
+        )
+
+        messages = results.get("messages", [])
+        self._paginate_messages(messages, results)
+
+        return messages
 
     def _search_messages(self) -> List[Dict[str, Any]]:
         """

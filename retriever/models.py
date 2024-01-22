@@ -12,19 +12,31 @@ class EmailAccount(BaseData):
     # Field for the showing it is using which service (Gmail, Outlook, etc.)
     service_type = models.CharField(max_length=255, null=True, blank=True, choices=EmailAccountTypes.get_choices())
 
-    def get_loader_class(self, max_results=10):
+    def get_loader_class(self, results_per_page=10, max_results=10):
         loader = EmailAccountTypes.get(self.service_type)["loader_class"](
             creds=self.creds,
             token=self.token,
+            results_per_page=results_per_page,
             max_results=max_results,
         )
         self.token = loader.get_token()
         self.save()
         return loader
 
-    def load_data(self, max_results=10):
-        loader = self.get_loader_class(max_results=max_results)
-        return loader.load_data()
+    def _load_ids_with_loader(self, results_per_page=10, max_results=10):
+        loader = self.get_loader_class(results_per_page=results_per_page, max_results=max_results)
+        return loader.load_message_ids()
+
+    def load_ids_to_email_messages(self, results_per_page=10, max_results=10):
+        data = self._load_ids_with_loader(results_per_page=results_per_page, max_results=max_results)
+        email_messages = []
+
+        for d in data:
+            email_messages.append(EmailMessage(external_id=d["id"], thread_id=d["threadId"], email_account=self))
+            print("add", d["id"])
+
+        # bulk create email messages
+        EmailMessage.objects.bulk_create(email_messages)
 
 
 class EmailMessage(BaseData):
