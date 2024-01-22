@@ -24,3 +24,5 @@ google-auth-oauthlib==1.2.0
 beautifulsoup4==4.12.3
 llama_index==0.9.33
 uuid==1.30
+celery==5.3.6
+redis==5.0.1

@@ -186,13 +186,13 @@ class GmailLoader(BaseReader):
 
         # https://developers.google.com/gmail/api/reference/rest/v1/users.messages
         return {
-            "id": message_data["id"],
-            "threadId": message_data["threadId"],
-            "snippet": message_data["snippet"],
-            "internalDate": message_data["internalDate"],
+            "id": message_data.get("id", None),
+            "threadId": message_data.get("threadId", None),
+            "snippet": message_data.get("snippet", None),
+            "internalDate": message_data.get("internalDate", None),
             "body": body,
-            "labelIds": message_data["labelIds"],
-            "historyId": message_data["historyId"],
+            "labelIds": message_data.get("labelIds", None),
+            "historyId": message_data.get("historyId", None),
             "subject": subject,
             "sender": sender,
             "recipient": recipient,
