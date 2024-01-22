@@ -27,5 +27,9 @@ class GmailReaderTest(TestCase):
         # WHEN load email messages
         email_account.load_ids_to_email_messages()
 
+        # WHEN load full data
+        for message in email_account.email_messages.all():
+            message.load_full_data()
+
         # THEN we should be able to load emails.
         self.assertIsNotNone(EmailMessage.objects.filter(email_account=email_account))

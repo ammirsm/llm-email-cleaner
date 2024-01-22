@@ -59,6 +59,10 @@ class GmailLoader(BaseReader):
         self.service = self.service or self._build_service()
         return self._search_messages_id()
 
+    def load_full_data(self, message_id: str) -> dict[str, Any]:
+        self.service = self.service or self._build_service()
+        return self._get_message_data(message={"id": message_id})
+
     def get_token(self):
         credentials, token = self._get_credentials()
         return token

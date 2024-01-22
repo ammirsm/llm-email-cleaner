@@ -54,3 +54,19 @@ class EmailMessage(BaseData):
         "EmailAccount", on_delete=models.CASCADE, related_name="email_messages", null=True
     )
     body = models.TextField(null=True, blank=True)
+
+    def load_full_data(self):
+        loader = self.email_account.get_loader_class()
+        data = loader.load_full_data(message_id=self.external_id)
+        data.pop("id", None)
+        data.pop("threadId", None)
+        self.snippet = data.get("snippet", None)
+        self.internal_date = data.get("internalDate", None)
+        self.label_ids = data.get("labelIds", None)
+        self.history_id = data.get("historyId", None)
+        self.subject = data.get("subject", None)
+        self.sender = data.get("sender", None)
+        self.recipient = data.get("recipient", None)
+        self.copy = data.get("copy", None)
+        self.body = data.get("body", None)
+        self.save()
