@@ -11,6 +11,7 @@ exclude = [
     "dist",
     "venv",
     "scripts",
+    "static",
 ]
 ignore = []
 line-length = 120

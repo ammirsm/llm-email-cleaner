@@ -199,6 +199,14 @@ class GmailLoader(BaseReader):
             "copy": copy,
         }
 
+    def _remove_message_with_id(self, message_id: str) -> None:
+        """
+        Remove a message from the user's Gmail account.
+
+        :param message_id: The ID of the message to remove.
+        """
+        self.service.users().messages().delete(userId="me", id=message_id).execute()
+
     def _extract_message_body_iterative(
         self, message: Dict[str, Any], is_top_level: bool = True
     ) -> Union[Dict[str, Any], str]:

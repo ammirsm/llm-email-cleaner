@@ -38,6 +38,10 @@ class EmailAccount(BaseData):
         # bulk create email messages
         EmailMessage.objects.bulk_create(email_messages)
 
+    def remove_token(self):
+        self.token = None
+        self.save()
+
 
 class EmailMessage(BaseData):
     external_id = models.CharField(max_length=5000, null=True, blank=True)

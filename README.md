@@ -52,13 +52,13 @@ python manage.py runserver
 Run Celery:
 
 ```bash
-celery -A your_project_name worker --loglevel=info
+celery -A core worker -P gevent -c 1000 --loglevel=info
 ```
 
 Run Celery Beats:
 
 ```bash
-celery -A your_project_name beat --loglevel=info
+celery -A core beat --loglevel=info
 ```
 
 ## Deployment

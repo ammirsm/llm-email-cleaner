@@ -244,3 +244,5 @@ db
 postgres_data
 
 config
+
+static
