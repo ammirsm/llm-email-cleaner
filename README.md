@@ -49,6 +49,18 @@ python manage.py test
 python manage.py runserver
 ```
 
+Run Celery:
+
+```bash
+celery -A your_project_name worker --loglevel=info
+```
+
+Run Celery Beats:
+
+```bash
+celery -A your_project_name beat --loglevel=info
+```
+
 ## Deployment
 
 Add additional notes about how to deploy this on a live system

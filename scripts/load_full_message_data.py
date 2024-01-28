@@ -3,7 +3,6 @@
 import os
 
 import django
-from retriever.models import EmailAccount
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
@@ -11,6 +10,7 @@ django.setup()
 
 EMAIL_ADDRESS = "example@gmail.com"
 
+from retriever.models import EmailAccount
 
 email_account = EmailAccount.objects.filter()[0]
 

@@ -26,3 +26,5 @@ llama_index==0.9.33
 uuid==1.30
 celery==5.3.6
 redis==5.0.1
+django-celery-beat==2.5.0
+django-celery-results==2.5.1

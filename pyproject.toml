@@ -10,6 +10,7 @@ exclude = [
     "build",
     "dist",
     "venv",
+    "scripts",
 ]
 ignore = []
 line-length = 120
