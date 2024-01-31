@@ -97,6 +97,11 @@ This project is licensed under the [LICENSE NAME] License - see the [LICENSE.md]
 
 TBD
 
+## What to run:
+1. Add your account to database with scripts/add_your_account.py
+2. Fill up messages table with scripts/fill_up_messages.py
+3. Fill up messages data asynchronously with scripts/fill_up_messages_data.py
+
 
 ## Remained TODOs
 
