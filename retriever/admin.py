@@ -1,7 +1,8 @@
 from advanced_filters.admin import AdminAdvancedFiltersMixin
 from django.contrib import admin
+from django.db import models
 
-from .models import EmailAccount, EmailMessage
+from .models import EmailAccount, EmailMessage, EmailMessageSender
 from .tasks import fill_full_data
 
 
@@ -14,9 +15,8 @@ admin.site.register(EmailAccount, EmailAccountAdmin)
 
 
 class EmailMessageAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
-    list_display = ("external_id", "subject", "sender", "recipient")
+    list_display = ("external_id", "subject", "email_sender", "recipient")
     search_fields = ("subject", "sender", "recipient")
-    # list_filter = ("subject",)
     sortable_by = ("subject",)
 
     actions = ["run_load_full_data"]
@@ -35,3 +35,26 @@ class EmailMessageAdmin(AdminAdvancedFiltersMixin, admin.ModelAdmin):
 
 
 admin.site.register(EmailMessage, EmailMessageAdmin)
+
+
+class EmailMessageSenderAdmin(admin.ModelAdmin):
+    list_display = ("name", "email", "email_account", "number_of_emails")
+    search_fields = ("name", "email")
+    list_filter = ("email_account",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                number_of_emails=models.Count("email_messages"),
+            )
+        )
+
+    def number_of_emails(self, obj):
+        return obj.number_of_emails
+
+    number_of_emails.admin_order_field = "number_of_emails"
+
+
+admin.site.register(EmailMessageSender, EmailMessageSenderAdmin)

@@ -3,6 +3,7 @@ from core.base.models import BaseData
 from django.db import models
 
 from retriever.constants import EmailAccountTypes
+from retriever.managers import EmailMessageSenderManager
 
 
 class EmailAccount(BaseData):
@@ -58,6 +59,9 @@ class EmailMessage(BaseData):
         "EmailAccount", on_delete=models.CASCADE, related_name="email_messages", null=True
     )
     body = models.TextField(null=True, blank=True)
+    email_sender = models.ForeignKey(
+        "EmailMessageSender", on_delete=models.CASCADE, related_name="email_messages", null=True
+    )
 
     def load_full_data(self):
         loader = self.email_account.get_loader_class()
@@ -74,3 +78,16 @@ class EmailMessage(BaseData):
         self.copy = data.get("copy", None)
         self.body = data.get("body", None)
         self.save()
+
+
+class EmailMessageSender(BaseData):
+    name = models.CharField(max_length=5000, null=True, blank=True)
+    email = models.CharField(max_length=5000, null=True, blank=True)
+    email_account = models.ForeignKey(
+        "EmailAccount", on_delete=models.CASCADE, related_name="email_message_senders", null=True
+    )
+
+    objects = EmailMessageSenderManager()
+
+    def __str__(self):
+        return f"{self.email}"
